@@ -10,6 +10,8 @@
 html, body { min-height: 100%; }
 body {
   margin: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
   color: var(--ink);
   font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
   background: #cfe4df;
@@ -25,15 +27,21 @@ body::before {
 .app-shell {
   position: relative;
   width: min(100%, 435px);
+  height: 100vh;
+  height: 100dvh;
   margin: 0 auto;
   overflow: hidden;
   background: var(--paper);
   box-shadow: 0 0 32px rgba(33, 84, 82, 0.22);
 }
 .scene-background {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: cover;
+  object-position: 70% center;
 }
 .workspace {
   position: absolute;
@@ -237,10 +245,14 @@ button { font: inherit; }
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 100svh;
+    height: 100vh;
+    height: 100dvh;
     padding: 24px;
   }
   .app-shell {
+    height: min(calc(100vh - 48px), 652.5px);
+    height: min(calc(100dvh - 48px), 652.5px);
     border-radius: 18px;
   }
+  .scene-background { object-position: center; }
 }
