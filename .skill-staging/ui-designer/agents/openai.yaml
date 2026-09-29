@@ -1,0 +1,4 @@
+interface:
+  display_name: "UI Designer"
+  short_description: "Build singular, ship-ready frontend interfaces."
+  default_prompt: "Use $ui-designer to design and implement a polished frontend interface for this request."

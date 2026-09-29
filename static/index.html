@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#d9ebe4">
+  <title>谜底是个字</title>
+  <link rel="icon" type="image/png" href="/static/images/logo.png">
+  <link rel="preload" as="image" href="/static/images/logo.png">
+  <style>
+    body.page-loading .app-shell { visibility: hidden; }
+    .page-loader {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: grid;
+      place-items: center;
+      background: #e5f0e9;
+      opacity: 1;
+      transition: opacity 650ms ease, visibility 650ms ease;
+    }
+    .page-loader.is-fading { opacity: 0; visibility: hidden; pointer-events: none; }
+    .page-loader-emblem {
+      position: relative;
+      display: grid;
+      place-items: center;
+      width: 160px;
+      height: 160px;
+    }
+    .page-loader-emblem::before, .page-loader-emblem::after {
+      content: "";
+      position: absolute;
+      inset: 14px;
+      border: 2px solid rgba(42, 126, 117, 0.22);
+      border-radius: 50%;
+      filter: blur(3px);
+      animation: loader-ripple 2.8s ease-out infinite;
+    }
+    .page-loader-emblem::after { animation-delay: 1.4s; }
+    .page-loader-logo {
+      position: relative;
+      z-index: 1;
+      display: block;
+      width: 128px;
+      height: 128px;
+      object-fit: contain;
+      animation: loader-breathe 2.8s ease-in-out infinite;
+    }
+    @keyframes loader-ripple {
+      0% { transform: scale(0.85); opacity: 0; }
+      20% { opacity: 0.55; }
+      100% { transform: scale(1.55); opacity: 0; }
+    }
+    @keyframes loader-breathe {
+      0%, 100% { transform: scale(0.96); opacity: 0.82; }
+      50% { transform: scale(1.04); opacity: 1; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .page-loader, .page-loader-emblem::before, .page-loader-emblem::after, .page-loader-logo {
+        animation: none;
+        transition: none;
+      }
+      .page-loader-emblem::before, .page-loader-emblem::after { display: none; }
+    }
+  </style>
+  <link rel="stylesheet" href="/static/styles.css?v=20260929-logo-50">
+  <noscript><style>.page-loader { display: none; } body.page-loading .app-shell { visibility: visible; }</style></noscript>
+</head>
+<body class="page-loading">
+  <div id="page-loader" class="page-loader" role="status" aria-label="页面加载中">
+    <div class="page-loader-emblem" aria-hidden="true">
+      <img class="page-loader-logo" src="/static/images/logo.png" alt="" width="128" height="128" fetchpriority="high">
+    </div>
+  </div>
+  <script>
+    (() => {
+      const revealPage = () => {
+        const loader = document.getElementById("page-loader");
+        if (!loader || loader.classList.contains("is-fading")) return;
+        document.body.classList.remove("page-loading");
+        loader.classList.add("is-fading");
+        window.setTimeout(() => loader.remove(), 700);
+      };
+      const timeout = window.setTimeout(revealPage, 12000);
+      window.addEventListener("load", () => {
+        const images = Array.from(document.images, (image) =>
+          image.decode ? image.decode().catch(() => {}) : Promise.resolve()
+        );
+        Promise.all([document.fonts ? document.fonts.ready : Promise.resolve(), ...images])
+          .then(() => {
+            window.clearTimeout(timeout);
+            revealPage();
+          }, revealPage);
+      }, { once: true });
+    })();
+  </script>
+  <div class="app-shell">
+    <img class="scene-background" src="/static/images/bg.png" alt="" aria-hidden="true">
+    <main class="workspace">
+      <header class="workspace-head">
+        <img class="brand-logo" src="/static/images/logo.png" alt="" width="50" height="50">
+        <div class="brand-copy">
+          <h1>谜底是个字</h1>
+          <p>一段谜面，一个字的答案。</p>
+        </div>
+      </header>
+      <div id="chat-status" class="chat-status" aria-live="polite">正在准备第一道字谜...</div>
+      <section id="message-list" class="message-list" aria-live="polite">
+        <div class="empty-state">
+          <div class="empty-ink" aria-hidden="true"></div>
+          <p class="empty-title">正在出题</p>
+          <p class="empty-copy">请稍等，出题人马上就来。</p>
+        </div>
+      </section>
+      <form id="chat-form" class="composer">
+        <div class="composer-shell">
+          <textarea id="message-input" rows="1" placeholder="输入你的答案，或说“提示一下”“公布答案”“再来一题”" autocomplete="off"></textarea>
+          <div class="composer-foot">
+            <!-- <span class="composer-hint">Enter 发送，Shift + Enter 换行</span> -->
+            <button id="send-btn" class="primary-btn" type="submit" disabled>发送</button>
+          </div>
+        </div>
+      </form>
+    </main>
+  </div>
+  <template id="message-template">
+    <article class="message-item">
+      <div class="message-content">
+        <div class="message-role"></div>
+        <div class="message-bubble"></div>
+      </div>
+    </article>
+  </template>
+  <script src="/static/app.js?v=20260929-user-sessions"></script>
+</body>
+</html>
