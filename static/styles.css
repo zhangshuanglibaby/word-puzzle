@@ -234,6 +234,25 @@ button { font: inherit; }
 .primary-btn:disabled { opacity: 0.48; cursor: not-allowed; transform: none; }
 .loading::after { content: " ..."; animation: blink 1.2s infinite; }
 @keyframes blink { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
+@media (max-width: 767px) {
+  html, body { height: 100%; overflow: hidden; }
+  body { position: fixed; inset: 0; width: 100%; }
+  .app-shell {
+    position: fixed;
+    top: var(--viewport-top, 0px);
+    left: var(--viewport-center, 50%);
+    height: var(--stage-height, 100dvh);
+    transform: translateX(-50%) scale(var(--viewport-correction, 1));
+    transform-origin: center top;
+  }
+  .workspace {
+    top: 0;
+    bottom: auto;
+    height: var(--visible-height, 100%);
+  }
+  textarea { min-height: 52px; font-size: 18px; -webkit-text-size-adjust: 100%; }
+  textarea::placeholder { font-size: 16px; }
+}
 @media (max-width: 360px) {
   .workspace { padding-right: 10px; padding-left: 10px; }
   .message-bubble { font-size: 11px; padding: 6px 8px; }

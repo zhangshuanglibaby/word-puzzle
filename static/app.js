@@ -9,6 +9,7 @@ const elements = {
 };
 
 document.addEventListener("DOMContentLoaded", () => {
+  setupMobileViewport();
   elements.chatForm.addEventListener("submit", handleSendMessage);
   elements.messageInput.addEventListener("input", autoResizeTextarea);
   elements.messageInput.addEventListener("keydown", (event) => {
@@ -31,7 +32,6 @@ async function initialize() {
     } else {
       setStatus("轮到你来猜了");
       updateComposerState();
-      elements.messageInput.focus();
     }
   } catch (error) {
     setStatus(error.message || "准备会话失败");
@@ -41,7 +41,10 @@ async function initialize() {
 async function handleSendMessage(event) {
   event.preventDefault();
   const message = elements.messageInput.value.trim();
-  if (message && !state.sending) await sendMessage(message);
+  if (message && !state.sending) {
+    elements.messageInput.blur();
+    await sendMessage(message);
+  }
 }
 
 async function sendMessage(message, isInitial = false) {
@@ -81,8 +84,64 @@ async function sendMessage(message, isInitial = false) {
   } finally {
     state.sending = false;
     updateComposerState();
-    elements.messageInput.focus();
   }
+}
+
+function setupMobileViewport() {
+  const mobile = window.matchMedia("(max-width: 767px)");
+  const viewport = window.visualViewport;
+  if (!viewport) return;
+
+  let stageHeight = 0;
+  let stageWidth = 0;
+  let focusScale = viewport.scale;
+  let correctingFocusZoom = false;
+  function syncViewport() {
+    if (!mobile.matches) {
+      document.documentElement.style.removeProperty("--stage-height");
+      document.documentElement.style.removeProperty("--viewport-top");
+      document.documentElement.style.removeProperty("--viewport-center");
+      document.documentElement.style.removeProperty("--viewport-correction");
+      document.documentElement.style.removeProperty("--visible-height");
+      return;
+    }
+    const visibleHeight = viewport.height;
+    if (stageWidth !== document.documentElement.clientWidth) {
+      stageWidth = document.documentElement.clientWidth;
+      stageHeight = Math.max(window.innerHeight, visibleHeight);
+    } else if (visibleHeight > stageHeight) {
+      stageHeight = visibleHeight;
+    }
+    const focusZoom = correctingFocusZoom ? Math.max(1, viewport.scale / focusScale) : 1;
+    if (focusZoom === 1 && document.activeElement !== elements.messageInput) {
+      correctingFocusZoom = false;
+    }
+    document.documentElement.style.setProperty("--stage-height", `${stageHeight}px`);
+    document.documentElement.style.setProperty("--viewport-top", `${viewport.offsetTop}px`);
+    document.documentElement.style.setProperty("--viewport-center", `${viewport.offsetLeft + viewport.width / 2}px`);
+    document.documentElement.style.setProperty("--viewport-correction", `${1 / focusZoom}`);
+    document.documentElement.style.setProperty("--visible-height", `${visibleHeight * focusZoom}px`);
+  }
+
+  syncViewport();
+  viewport.addEventListener("resize", syncViewport);
+  viewport.addEventListener("scroll", syncViewport);
+  window.addEventListener("resize", syncViewport);
+  window.addEventListener("scroll", syncViewport);
+  mobile.addEventListener("change", syncViewport);
+  elements.messageInput.addEventListener("pointerdown", () => {
+    if (!correctingFocusZoom) focusScale = viewport.scale;
+    correctingFocusZoom = true;
+  });
+  elements.messageInput.addEventListener("focus", () => {
+    if (!correctingFocusZoom) focusScale = viewport.scale;
+    correctingFocusZoom = true;
+    syncViewport();
+  });
+  elements.messageInput.addEventListener("blur", () => {
+    window.scrollTo(0, 0);
+    window.setTimeout(syncViewport, 350);
+  });
 }
 
 function renderMessages(messages) {
